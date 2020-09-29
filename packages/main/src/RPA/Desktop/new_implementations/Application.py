@@ -1,4 +1,103 @@
-class Application:
+import platform
+from typing import Any, Optional
+
+from RPA.core.helpers import delay
+
+SUPPORTED_WINDOWS_BACKENDS = ["uia", "win32"]
+
+if platform.system() == "Windows":
+    import ctypes
+    import win32api
+    import win32gui
+
+
+class ApplicationManager:
+    def __init__(self):
+        self._apps = {}
+        self._app_instance_id = 0
+        self._active_app_instance = -1
+        self.app = None
+        self.dlg = None
+        self.windowtitle = None
+        self.set_backend()
+
+    def set_backend(self, backend: Optional[str] = None):
+        """ Set interaction backend """
+        if platform.system() == "windows":
+            return self._set_windows_backend(backend)
+        else:
+            # FIXME: Since logger is set in a super class this is very bug prone
+            self.logger.warn("Non-windows backends don't exist yet")
+            # raise NotImplementedError("Set Backend not yet implemented for non-windows")
+
+    def add_app_instance(
+        self,
+        app: Any = None,
+        dialog: bool = True,
+        params: dict = None,
+    ):
+        """ Add an App to list of open apps """
+        if platform.system() == "windows":
+            return self._windows_add_app_instance(app, dialog, params)
+
+    def _set_windows_backend(self, backend: Optional[str] = "uia") -> None:
+        """Set Windows backend which is used to interact with Windows
+        applications
+
+        Allowed values defined by `SUPPORTED_BACKENDS`
+
+        :param backend: name of the backend to use
+
+        Example:
+
+        .. code-block:: robotframework
+
+            Set Windows Backend   uia
+            Open Executable   calc.exe  Calculator
+            Set Windows Backend   win32
+            Open Executable   calc.exe  Calculator
+
+        """
+        if backend and backend.lower() in SUPPORTED_WINDOWS_BACKENDS:
+            self._backend = backend.lower()
+        else:
+            raise ValueError("Unsupported Windows backend: %s" % backend)
+
+    def _windows_add_app_instance(
+        self,
+        app: Any = None,
+        dialog: bool = True,
+        params: dict = None,
+    ) -> Optional[int]:
+        params = params or {}
+        self._app_instance_id += 1
+        process_id = None
+        handle = None
+        if app:
+            self.app = app
+            if hasattr(app, "process"):
+                process_id = app.process
+                handle = win32gui.GetForegroundWindow()
+
+            default_params = {
+                "app": app,
+                "id": self._app_instance_id,
+                "dialog": dialog,
+                "process_id": process_id,
+                "handle": handle,
+                "dispatched": False,
+            }
+
+            self._apps[self._app_instance_id] = {**default_params, **params}
+
+            self.logger.debug(
+                "Added app instance %s: %s",
+                self._app_instance_id,
+                self._apps[self._app_instance_id],
+            )
+            self._active_app_instance = self._app_instance_id
+            return self._active_app_instance
+
     def open_application(self):
         # TODO: implement behaviour here. Windows specifically has a ton of different strategies to support
         pass

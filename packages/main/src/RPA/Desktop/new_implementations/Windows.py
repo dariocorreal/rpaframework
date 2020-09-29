@@ -1,81 +1,19 @@
+import os
 import platform
+import subprocess
+
+from RPA.core.helpers import delay
 
 if platform.system() == "Windows":
-    import ctypes
-    import win32api
     import win32com.client
     import win32con
     import win32security
     import pywinauto
-    import win32gui
-
-
-SUPPORTED_BACKENDS = ["uia", "win32"]
 
 """ Windows only implementations and helpers """
 
 
-def set_windows_backend(self, backend: str) -> None:
-    """Set Windows backend which is used to interact with Windows
-    applications
-
-    Allowed values defined by `SUPPORTED_BACKENDS`
-
-    :param backend: name of the backend to use
-
-    Example:
-
-    .. code-block:: robotframework
-
-        Set Windows Backend   uia
-        Open Executable   calc.exe  Calculator
-        Set Windows Backend   win32
-        Open Executable   calc.exe  Calculator
-
-    """
-    if backend and backend.lower() in SUPPORTED_BACKENDS:
-        self._backend = backend.lower()
-    else:
-        raise ValueError("Unsupported Windows backend: %s" % backend)
-
-
-def _add_app_instance(
-    instance: DesktopBase,
-    app: Any = None,
-    dialog: bool = True,
-    params: dict = None,
-) -> Optional[int]:
-    params = params or {}
-    instance._app_instance_id += 1
-    process_id = None
-    handle = None
-    if app:
-        self.app = app
-        if hasattr(app, "process"):
-            process_id = app.process
-            handle = win32gui.GetForegroundWindow()
-
-        default_params = {
-            "app": app,
-            "id": instance._app_instance_id,
-            "dialog": dialog,
-            "process_id": process_id,
-            "handle": handle,
-            "dispatched": False,
-        }
-
-        instance._apps[instance._app_instance_id] = {**default_params, **params}
-
-        instance.logger.debug(
-            "Added app instance %s: %s",
-            instance._app_instance_id,
-            instance._apps[instance._app_instance_id],
-        )
-        instance._active_app_instance = instance._app_instance_id
-        return instance._active_app_instance
-
-
-def log_in(self, username: str, password: str, domain: str = ".") -> str:
+def log_in(username: str, password: str, domain: str = ".") -> str:
     """Log into Windows `domain` with `username` and `password`.
 
     :param username: name of the user

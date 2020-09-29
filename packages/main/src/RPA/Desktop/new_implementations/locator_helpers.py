@@ -1,4 +1,7 @@
-def determine_search_criteria(self, locator: str) -> Any:
+from typing import Any
+
+
+def determine_search_criteria(locator: str) -> Any:
     """Check search criteria from locator.
 
     Possible search criterias:

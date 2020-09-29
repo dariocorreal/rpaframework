@@ -1,4 +1,5 @@
 from RPA.Images import Images
+from RPA.core.helpers import delay
 
 
 class Mouse:

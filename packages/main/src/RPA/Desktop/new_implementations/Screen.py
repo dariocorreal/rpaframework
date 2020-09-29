@@ -1,5 +1,17 @@
+import os
+from datetime import time
+from pathlib import Path
+from typing import Any, Union, Tuple
+
+from RPA.Images import Images
+from RPA.core.helpers import clean_filename
+from robot.libraries.BuiltIn import RobotNotRunningError, BuiltIn
+
+
 class Screen:
-    def get_dialog_rectangle(self, ctrl: Any = None, as_dict: bool = False) -> Any:
+    def get_dialog_rectangle(
+        self, ctrl: Any = None, as_dict: bool = False
+    ) -> Union[dict, Tuple[int, int, int, int]]:
         """Get dialog rectangle coordinates
 
         If `ctrl` is None then get coordinates from `dialog`

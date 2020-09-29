@@ -1,3 +1,8 @@
+import platform
+
+from RPA.core.helpers import delay
+
+
 class Keyboard:
     def type_keys(self, keys: str) -> None:
         """Type keys into active window element.

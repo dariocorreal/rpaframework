@@ -1,3 +1,8 @@
+from typing import Any
+
+from RPA.core.helpers import delay
+
+
 class DragAndDrop:
     def _validate_target(self, target: dict, target_locator: str) -> Any:
         target_x = target_y = 0
