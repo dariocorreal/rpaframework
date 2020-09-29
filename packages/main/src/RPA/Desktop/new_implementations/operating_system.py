@@ -9,7 +9,7 @@ import socket
 from typing import Any
 
 from RPA.core.decorators import operating_system_required
-from . import Windows as Windows
+from . import windows as Windows
 
 if platform.system() == "Windows":
     import psutil

@@ -1,9 +1,9 @@
-from .Application import ApplicationManager
-from .Elements import Elements
-from .Mouse import Mouse
-from .Screen import Screen
-from .Clipboard import Clipboard
-from .DragAndDrop import DragAndDrop
-from .Keyboard import Keyboard
-from .OperatingSystem import OperatingSystem
-from . import Windows as Windows
+from .application import ApplicationManager
+from .elements import Elements
+from .mouse import Mouse
+from .screen import Screen
+from .clipboard import Clipboard
+from .drag_and_drop import DragAndDrop
+from .keyboard import Keyboard
+from .operating_system import OperatingSystem
+from . import windows as Windows

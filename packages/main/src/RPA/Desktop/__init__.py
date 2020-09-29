@@ -1,1 +1,1 @@
-from .DesktopBase import Desktop
+from .desktop_base import Desktop
