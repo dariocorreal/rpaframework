@@ -4,67 +4,27 @@ import os
 import platform
 import signal
 import socket
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod, ABC
 from collections import OrderedDict
 from typing import Any
 
 from RPA.Desktop.new_implementations.shared_abc import SharedAbc
 from RPA.core.decorators import operating_system_required
 
-from . import windows as Windows
-
 if platform.system() == "Windows":
     import psutil
     from psutil._common import bytes2human
+    import win32con
+    import win32security
 else:
     psutil = object
     bytes2human = object
 
 
-class OperatingSystem(SharedAbc, metaclass=ABCMeta):
+class _OperatingSystem(ABC):
     """RPA Framework library containing cross platform keywords for managing
     computer properties and actions.
     """
-
-    @operating_system_required("Windows")
-    def get_boot_time(
-        self, as_datetime: bool = False, datetime_format: str = "%Y-%m-%d %H:%M:%S"
-    ) -> str:
-        """Get computer boot time in seconds from Epoch or in datetime string.
-
-        :param as_datetime: if True returns datetime string, otherwise seconds,
-            defaults to False
-        :param datetime_format: datetime string format, defaults to "%Y-%m-%d %H:%M:%S"
-        :return: seconds from Epoch or datetime string
-
-        Example:
-
-        .. code-block:: robotframework
-
-            ${boottime}  Get Boot Time
-            ${boottime}  Get Boot Time   as_datetime=True
-            ${boottime}  Get Boot Time   as_datetime=True  datetime_format=%d.%m.%Y
-
-        """
-        btime = self.boot_time_in_seconds_from_epoch()
-        if as_datetime:
-            return datetime.datetime.fromtimestamp(btime).strftime(datetime_format)
-        return btime
-
-    @operating_system_required("Windows")
-    def boot_time_in_seconds_from_epoch(self) -> str:
-        """Get machine boot time
-
-        :return: boot time in seconds from Epoch
-
-        Example:
-
-        .. code-block:: robotframework
-
-            ${epoch}  Boot Time In Seconds From Epoch
-
-        """
-        return psutil.boot_time()
 
     def get_machine_name(self) -> str:
         """Get machine name
@@ -94,6 +54,39 @@ class OperatingSystem(SharedAbc, metaclass=ABCMeta):
         """
         return getpass.getuser()
 
+    def connect_by_pid(self, app_pid: str, windowtitle: str = None) -> Any:
+        """Connect to application by its pid
+
+        :param app_pid: process id of the application
+
+        Example:
+
+        .. code-block:: robotframework
+
+            ${appid}  Connect By PID  3231
+
+        """
+        self.logger.info("Connect to application pid: %s", app_pid)
+        window_list = self.get_window_list()
+        for win in window_list:
+            if win["pid"] == app_pid:
+                if windowtitle is None or (windowtitle and windowtitle in win["title"]):
+                    self.logger.info(
+                        "PID:%s matched window title:%s", win["pid"], win["title"]
+                    )
+                    return self.connect_by_handle(win["handle"], windowtitle)
+        return None
+
+    @abstractmethod
+    def connect_by_handle(self, param, existing_app):
+        ...
+
+    @abstractmethod
+    def kill_process_by_pid(self, pid: int) -> None:
+        ...
+
+
+class _UnixlikeOperatingSystem(_OperatingSystem):
     @operating_system_required("Darwin", "Linux")
     def put_system_to_sleep(self) -> None:
         """Puts system to sleep mode
@@ -110,7 +103,17 @@ class OperatingSystem(SharedAbc, metaclass=ABCMeta):
         if platform.system() == "Linux":
             os.system("systemctl suspend")
 
-    @operating_system_required("Windows")
+    def connect_by_handle(self, param, existing_app):
+        ...
+
+    def connect_by_pid(self, app_pid: str, windowtitle: str = None) -> Any:
+        ...
+
+    def kill_process_by_pid(self, pid: int) -> None:
+        ...
+
+
+class _WindowsOperatingSystem(_OperatingSystem):
     def process_exists(self, process_name: str, strict: bool = True) -> Any:
         """Check if process exists by its name
 
@@ -136,7 +139,6 @@ class OperatingSystem(SharedAbc, metaclass=ABCMeta):
                 return p
         return False
 
-    @operating_system_required("Windows")
     def kill_process(self, process_name: str) -> bool:
         """Kill process by name
 
@@ -157,7 +159,6 @@ class OperatingSystem(SharedAbc, metaclass=ABCMeta):
             return True
         return False
 
-    @operating_system_required("Windows")
     def kill_process_by_pid(self, pid: int) -> None:
         """Kill process by pid
 
@@ -173,7 +174,6 @@ class OperatingSystem(SharedAbc, metaclass=ABCMeta):
         """
         os.kill(pid, signal.SIGTERM)
 
-    @operating_system_required("Windows")
     def get_memory_stats(self, humanized: bool = True) -> dict:
         """Get computer memory stats and return those in bytes
         or in humanized memory format.
@@ -201,28 +201,27 @@ class OperatingSystem(SharedAbc, metaclass=ABCMeta):
             return OrderedDict(humandict)
         return memdict
 
-    def connect_by_pid(self, app_pid: str, windowtitle: str = None) -> Any:
-        """Connect to application by its pid
+    def log_in(self, username: str, password: str, domain: str = ".") -> str:
+        """Log into Windows `domain` with `username` and `password`.
 
-        :param app_pid: process id of the application
+        :param username: name of the user
+        :param password: password of the user
+        :param domain: windows domain for the user, defaults to "."
+        :return: handle
 
         Example:
 
         .. code-block:: robotframework
 
-            ${appid}  Connect By PID  3231
-
+            Log In  username=myname  password=mypassword  domain=company
         """
-        self.logger.info("Connect to application pid: %s", app_pid)
-        window_list = self.get_window_list()
-        for win in window_list:
-            if win["pid"] == app_pid:
-                if windowtitle is None or (windowtitle and windowtitle in win["title"]):
-                    self.logger.info(
-                        "PID:%s matched window title:%s", win["pid"], win["title"]
-                    )
-                    return self.connect_by_handle(win["handle"], windowtitle)
-        return None
+        return win32security.LogonUser(
+            username,
+            domain,
+            password,
+            win32con.LOGON32_LOGON_INTERACTIVE,
+            win32con.LOGON32_PROVIDER_DEFAULT,
+        )
 
     def connect_by_handle(
         self, handle: str, windowtitle: str = None, existing_app: bool = False
@@ -251,3 +250,47 @@ class OperatingSystem(SharedAbc, metaclass=ABCMeta):
                 params = {"windowtitle": windowtitle}
             app_instance = self._add_app_instance(app=app, params=params, dialog=False)
         return app_instance
+
+    def get_boot_time(
+        self, as_datetime: bool = False, datetime_format: str = "%Y-%m-%d %H:%M:%S"
+    ) -> str:
+        """Get computer boot time in seconds from Epoch or in datetime string.
+
+        :param as_datetime: if True returns datetime string, otherwise seconds,
+            defaults to False
+        :param datetime_format: datetime string format, defaults to "%Y-%m-%d %H:%M:%S"
+        :return: seconds from Epoch or datetime string
+
+        Example:
+
+        .. code-block:: robotframework
+
+            ${boottime}  Get Boot Time
+            ${boottime}  Get Boot Time   as_datetime=True
+            ${boottime}  Get Boot Time   as_datetime=True  datetime_format=%d.%m.%Y
+
+        """
+        btime = self.boot_time_in_seconds_from_epoch()
+        if as_datetime:
+            return datetime.datetime.fromtimestamp(btime).strftime(datetime_format)
+        return btime
+
+    def boot_time_in_seconds_from_epoch(self) -> str:
+        """Get machine boot time
+
+        :return: boot time in seconds from Epoch
+
+        Example:
+
+        .. code-block:: robotframework
+
+            ${epoch}  Boot Time In Seconds From Epoch
+
+        """
+        return psutil.boot_time()
+
+
+if platform.system() == "Windows":
+    OperatingSystem = _WindowsOperatingSystem
+else:
+    OperatingSystem = _UnixlikeOperatingSystem

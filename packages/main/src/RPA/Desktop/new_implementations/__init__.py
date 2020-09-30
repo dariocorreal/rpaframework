@@ -1,4 +1,3 @@
-from .windows import Windows
 from .application import ApplicationManager
 from .clipboard import Clipboard
 from .drag_and_drop import DragAndDrop

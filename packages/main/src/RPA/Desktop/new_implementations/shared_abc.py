@@ -32,10 +32,6 @@ class SharedAbc(ABC):
         ...
 
     @abstractmethod
-    def connect_by_handle(self, param, existing_app):
-        ...
-
-    @abstractmethod
     def send_keys_to_input(
         self,
         keys_to_type: str,
@@ -87,6 +83,10 @@ class SharedAbc(ABC):
         timeout: int = 10,
         existing_app: bool = False,
     ) -> Any:
+        ...
+
+    @abstractmethod
+    def connect_by_handle(self, param, existing_app):
         ...
 
     @abstractmethod

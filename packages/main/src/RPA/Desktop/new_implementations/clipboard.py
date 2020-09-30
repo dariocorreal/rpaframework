@@ -32,6 +32,10 @@ class _AbstractClipboard(ABC):
 
 
 class _WindowsClipboard(_AbstractClipboard):
+    """RPA Framework library for cross platform clipboard management.
+    Will use `win32` package on Windows and `clipboard` package on Linux and Mac.
+    """
+
     def copy_to_clipboard(self, text):
         self.logger.debug("copy_to_clipboard")
         win32clipboard.OpenClipboard()
@@ -57,6 +61,11 @@ class _WindowsClipboard(_AbstractClipboard):
 
 
 class _UnixClipboard(_AbstractClipboard):
+    """RPA Framework library for cross platform clipboard management.
+
+    Will use `win32` package on Windows and `clipboard` package on Linux and Mac.
+    """
+
     def copy_to_clipboard(self, text):
         self.logger.debug("copy_to_clipboard")
         clipboard.copy(text)
@@ -70,12 +79,7 @@ class _UnixClipboard(_AbstractClipboard):
         clipboard.copy("")
 
 
-class Clipboard(
-    _WindowsClipboard if platform.system() == "Windows" else _UnixClipboard
-):
-    """RPA Framework library for cross platform clipboard management.
-
-    Will use `win32` package on Windows and `clipboard` package on Linux and Mac.
-    """
-
-    pass
+if platform.system() == "Windows":
+    Clipboard = _WindowsClipboard
+else:
+    Clipboard = _UnixClipboard

@@ -11,6 +11,7 @@ from robot.libraries.BuiltIn import RobotNotRunningError, BuiltIn
 
 
 class Screen(SharedAbc, metaclass=ABCMeta):
+    # TODO: Add actual type for ctrl object
     def get_dialog_rectangle(
         self, ctrl: Any = None, as_dict: bool = False
     ) -> Union[dict, Tuple[int, int, int, int]]:
