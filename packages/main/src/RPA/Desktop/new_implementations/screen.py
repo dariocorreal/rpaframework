@@ -7,6 +7,7 @@ from typing import Any, Union, Tuple
 from RPA.Desktop.new_implementations.shared_abc import SharedAbc
 from RPA.Images import Images
 from RPA.core.helpers import clean_filename, delay
+from robot.api.deco import keyword
 from robot.libraries.BuiltIn import RobotNotRunningError, BuiltIn
 
 
@@ -47,6 +48,7 @@ class Screen(SharedAbc, metaclass=ABCMeta):
         else:
             return rect.left, rect.top, rect.right, rect.bottom
 
+    @keyword
     def screenshot(
         self,
         filename: str,

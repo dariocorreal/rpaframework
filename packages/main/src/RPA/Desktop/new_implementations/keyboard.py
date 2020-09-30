@@ -3,9 +3,11 @@ from abc import ABCMeta
 
 from RPA.Desktop.new_implementations.shared_abc import SharedAbc
 from RPA.core.helpers import delay
+from robot.api.deco import keyword
 
 
 class Keyboard(SharedAbc, metaclass=ABCMeta):
+    @keyword
     def type_keys(self, keys: str) -> None:
         """Type keys into active window element.
 
@@ -48,6 +50,7 @@ class Keyboard(SharedAbc, metaclass=ABCMeta):
         else:
             raise ValueError(f"Could not find unique element for '{locator}'")
 
+    @keyword
     def send_keys(self, keys: str) -> None:
         """Send keys into active windows.
 

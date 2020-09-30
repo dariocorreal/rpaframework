@@ -7,6 +7,7 @@ from typing import Any, Optional
 from RPA.Desktop.new_implementations.shared_abc import SharedAbc
 from RPA.core.decorators import operating_system_required
 from RPA.core.helpers import delay
+from robot.api.deco import keyword
 
 SUPPORTED_WINDOWS_BACKENDS = ["uia", "win32"]
 
@@ -93,10 +94,12 @@ class ApplicationManager(SharedAbc, metaclass=ABCMeta):
             self._active_app_instance = self._app_instance_id
             return self._active_app_instance
 
+    @keyword
     def open_application(self):
         # TODO: implement behaviour here. Windows specifically has a ton of different strategies to support
         pass
 
+    @keyword
     def switch_to_application(self, app_id: int) -> None:
         """Switch to application by id.
 
@@ -180,6 +183,7 @@ class ApplicationManager(SharedAbc, metaclass=ABCMeta):
             self.quit_application(aid)
             del self._apps[aid]
 
+    @keyword
     def quit_application(self, app_id: str = None, send_keys: bool = False) -> None:
         """Quit an application by application id or
         active application if `app_id` is None.

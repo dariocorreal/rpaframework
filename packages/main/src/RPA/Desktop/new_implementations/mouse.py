@@ -3,9 +3,11 @@ from abc import ABCMeta
 from RPA.Desktop.new_implementations.shared_abc import SharedAbc
 from RPA.Images import Images
 from RPA.core.helpers import delay
+from robot.api.deco import keyword
 
 
 class Mouse(SharedAbc, metaclass=ABCMeta):
+    @keyword
     def mouse_click(
         self,
         locator: str = None,

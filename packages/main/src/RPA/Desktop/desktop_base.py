@@ -10,8 +10,10 @@ from RPA.Desktop.new_implementations import (
     OperatingSystem,
     Screen,
 )
+from robot.api.deco import library
 
 
+@library(scope="GLOBAL")
 class Desktop(
     ApplicationManager,
     Clipboard,
@@ -23,8 +25,6 @@ class Desktop(
     Screen,
 ):
     """Desktop base class, handles state and exposed as the robot library RPA.Desktop"""
-
-    ROBOT_LIBRARY_SCOPE = "GLOBAL"
 
     def __init__(self) -> None:
         super().__init__()
