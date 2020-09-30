@@ -1,15 +1,16 @@
-from abc import ABCMeta
-from collections import OrderedDict
 import datetime
 import getpass
 import os
 import platform
 import signal
 import socket
+from abc import ABCMeta
+from collections import OrderedDict
 from typing import Any
 
 from RPA.Desktop.new_implementations.shared_abc import SharedAbc
 from RPA.core.decorators import operating_system_required
+
 from . import windows as Windows
 
 if platform.system() == "Windows":
@@ -113,18 +114,18 @@ class OperatingSystem(SharedAbc, metaclass=ABCMeta):
     def process_exists(self, process_name: str, strict: bool = True) -> Any:
         """Check if process exists by its name
 
-        :param process_name: search for this process
-        :param strict: defines how match is made, default `True`
-         which means that process name needs to be exact match
-         and `False` does inclusive matching
-        :return: process instance or False
+                :param process_name: search for this process
+                :param strict: defines how match is made, default `True`
+                 which means that process name needs to be exact match
+                 and `False` does inclusive matching
+                :return: process instance or False
 
-        Example:
+                Example:
 
-        .. code-block:: robotframework
-
-            ${process}  Process Exists  calc
-            ${process}  Process Exists  calc  strict=False
+                .. code-block:: robotframework
+        w
+                    ${process}  Process Exists  calc
+                    ${process}  Process Exists  calc  strict=False
 
         """
         for p in psutil.process_iter():
@@ -250,5 +251,3 @@ class OperatingSystem(SharedAbc, metaclass=ABCMeta):
                 params = {"windowtitle": windowtitle}
             app_instance = self._add_app_instance(app=app, params=params, dialog=False)
         return app_instance
-
-    log_in = Windows.log_in

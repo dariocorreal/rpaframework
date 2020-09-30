@@ -1,7 +1,7 @@
 import json
 import os
 import re
-from abc import ABC, ABCMeta
+from abc import ABCMeta
 from datetime import time
 from pathlib import Path
 from typing import Any

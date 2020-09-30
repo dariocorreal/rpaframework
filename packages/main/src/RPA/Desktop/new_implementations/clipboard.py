@@ -1,58 +1,81 @@
 # pylint: disable=c-extension-no-member
-import logging
 import platform
-from abc import ABCMeta
-
-import clipboard
-from RPA.Desktop.new_implementations.shared_abc import SharedAbc
+from abc import ABCMeta, ABC, abstractmethod
 
 if platform.system() == "Windows":
     import win32clipboard
+else:
+    import clipboard
 
 
-class Clipboard(SharedAbc, metaclass=ABCMeta):
-    """RPA Framework library for cross platform clipboard management.
-
-    Will use `win32` package on Windows and `clipboard` package on Linux and Mac.
-    """
-
+class _AbstractClipboard(ABC):
+    @abstractmethod
     def copy_to_clipboard(self, text):
         """Copy text to clipboard
 
         :param text: to copy
         """
-        self.logger.debug("copy_to_clipboard")
-        if platform.system() == "Windows":
-            win32clipboard.OpenClipboard()
-            win32clipboard.EmptyClipboard()
-            win32clipboard.SetClipboardText(text)
-            win32clipboard.CloseClipboard()
-        else:
-            clipboard.copy(text)
+        ...
 
+    @abstractmethod
     def paste_from_clipboard(self):
         """Paste text from clipboard
 
         :return: text
         """
-        self.logger.debug("paste_from_clipboard")
-        if platform.system() == "Windows":
-            win32clipboard.OpenClipboard()
-            if win32clipboard.IsClipboardFormatAvailable(win32clipboard.CF_TEXT):
-                text = win32clipboard.GetClipboardData()
-            else:
-                text = None
-            win32clipboard.CloseClipboard()
-            return text
-        else:
-            return clipboard.paste()
+        ...
 
+    @abstractmethod
     def clear_clipboard(self):
         """Clear clipboard contents"""
-        self.logger.debug("clear_clipboard")
-        if platform.system() == "Windows":
-            win32clipboard.OpenClipboard()
-            win32clipboard.EmptyClipboard()
-            win32clipboard.CloseClipboard()
+        ...
+
+
+class _WindowsClipboard(_AbstractClipboard):
+    def copy_to_clipboard(self, text):
+        self.logger.debug("copy_to_clipboard")
+        win32clipboard.OpenClipboard()
+        win32clipboard.EmptyClipboard()
+        win32clipboard.SetClipboardText(text)
+        win32clipboard.CloseClipboard()
+
+    def paste_from_clipboard(self):
+        self.logger.debug("paste_from_clipboard")
+        win32clipboard.OpenClipboard()
+        if win32clipboard.IsClipboardFormatAvailable(win32clipboard.CF_TEXT):
+            text = win32clipboard.GetClipboardData()
         else:
-            clipboard.copy("")
+            text = None
+        win32clipboard.CloseClipboard()
+        return text
+
+    def clear_clipboard(self):
+        self.logger.debug("clear_clipboard")
+        win32clipboard.OpenClipboard()
+        win32clipboard.EmptyClipboard()
+        win32clipboard.CloseClipboard()
+
+
+class _UnixClipboard(_AbstractClipboard):
+    def copy_to_clipboard(self, text):
+        self.logger.debug("copy_to_clipboard")
+        clipboard.copy(text)
+
+    def paste_from_clipboard(self):
+        self.logger.debug("paste_from_clipboard")
+        return clipboard.paste()
+
+    def clear_clipboard(self):
+        self.logger.debug("clear_clipboard")
+        clipboard.copy("")
+
+
+class Clipboard(
+    _WindowsClipboard if platform.system() == "Windows" else _UnixClipboard
+):
+    """RPA Framework library for cross platform clipboard management.
+
+    Will use `win32` package on Windows and `clipboard` package on Linux and Mac.
+    """
+
+    pass

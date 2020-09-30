@@ -1,6 +1,6 @@
 # pylint: disable=c-extension-no-member
 import logging
-
+import platform
 
 from RPA.Desktop.new_implementations import (
     ApplicationManager,
@@ -11,6 +11,7 @@ from RPA.Desktop.new_implementations import (
     Mouse,
     OperatingSystem,
     Screen,
+    Windows,
 )
 
 
@@ -23,6 +24,7 @@ class Desktop(
     Mouse,
     OperatingSystem,
     Screen,
+    WindowsOnly if platform.system() == "Windows" else object,
 ):
     """Desktop base class, handles state and exposed as the robot library RPA.Desktop"""
 

@@ -1,4 +1,4 @@
-from abc import ABC, ABCMeta
+from abc import ABCMeta
 from typing import Any, Tuple
 
 from RPA.Desktop.new_implementations.shared_abc import SharedAbc

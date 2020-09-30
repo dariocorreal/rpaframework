@@ -1,7 +1,7 @@
 import os
 import platform
 import subprocess
-from abc import ABC, ABCMeta
+from abc import ABCMeta
 from typing import Any, Optional
 
 from RPA.Desktop.new_implementations.shared_abc import SharedAbc
@@ -11,8 +11,6 @@ from RPA.core.helpers import delay
 SUPPORTED_WINDOWS_BACKENDS = ["uia", "win32"]
 
 if platform.system() == "Windows":
-    import ctypes
-    import win32api
     import win32gui
     import pywinauto
 
