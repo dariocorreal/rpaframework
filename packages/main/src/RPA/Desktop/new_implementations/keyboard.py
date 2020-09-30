@@ -1,9 +1,11 @@
 import platform
+from abc import ABCMeta
 
+from RPA.Desktop.new_implementations.shared_abc import SharedAbc
 from RPA.core.helpers import delay
 
 
-class Keyboard:
+class Keyboard(SharedAbc, metaclass=ABCMeta):
     def type_keys(self, keys: str) -> None:
         """Type keys into active window element.
 

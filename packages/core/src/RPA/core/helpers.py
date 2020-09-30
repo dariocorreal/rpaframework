@@ -13,7 +13,7 @@ UNDEFINED = object()
 def delay(sleeptime: float = 0.0):
     """Delay execution for given amount of seconds.
 
-    :param sleeptime: seconds as integer, defaults to 0
+    :param sleeptime: seconds as float, defaults to 0
     """
     sleeptime = float(sleeptime)
 

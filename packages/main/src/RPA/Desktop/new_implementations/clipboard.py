@@ -1,21 +1,20 @@
 # pylint: disable=c-extension-no-member
 import logging
 import platform
+from abc import ABCMeta
 
 import clipboard
+from RPA.Desktop.new_implementations.shared_abc import SharedAbc
 
 if platform.system() == "Windows":
     import win32clipboard
 
 
-class Clipboard:
+class Clipboard(SharedAbc, metaclass=ABCMeta):
     """RPA Framework library for cross platform clipboard management.
 
     Will use `win32` package on Windows and `clipboard` package on Linux and Mac.
     """
-
-    def __init__(self):
-        self.logger = logging.getLogger(__name__)
 
     def copy_to_clipboard(self, text):
         """Copy text to clipboard

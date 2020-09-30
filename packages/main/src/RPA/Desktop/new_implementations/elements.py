@@ -1,10 +1,12 @@
 import json
 import os
 import re
+from abc import ABC, ABCMeta
 from datetime import time
 from pathlib import Path
 from typing import Any
 
+from RPA.Desktop.new_implementations.shared_abc import SharedAbc
 from RPA.core.helpers import clean_filename, delay
 
 from .locator_helpers import determine_search_criteria
@@ -34,7 +36,7 @@ def write_element_info_as_json(
         json.dump(elements, outfile, indent=4, sort_keys=True)
 
 
-class Elements:
+class Elements(SharedAbc, metaclass=ABCMeta):
     def get_text(self, locator: str) -> dict:
         """Get text from element
 
@@ -85,7 +87,7 @@ class Elements:
 
         """
         self.logger.info("Get element: %s", locator)
-        self.open_dialog(self.windowtitle)
+        self.open_dialog(self.window_title)
         self.dlg.wait("exists enabled visible ready")
 
         search_criteria, locator = determine_search_criteria(locator)
@@ -102,7 +104,7 @@ class Elements:
                 "Maybe one of these would be better?\n%s\n",
                 locator,
                 search_criteria,
-                self.windowtitle,
+                self.window_title,
                 locators_string,
             )
         elif len(matching_elements) == 1:
@@ -119,7 +121,7 @@ class Elements:
                 "Locator '%s' matched multiple elements in '%s'. "
                 "Maybe one of these would be better?\n%s\n",
                 locator,
-                self.windowtitle,
+                self.window_title,
                 locators_string,
             )
         return False

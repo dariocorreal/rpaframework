@@ -1,13 +1,14 @@
+from abc import ABCMeta
 from collections import OrderedDict
 import datetime
 import getpass
-import logging
 import os
 import platform
 import signal
 import socket
 from typing import Any
 
+from RPA.Desktop.new_implementations.shared_abc import SharedAbc
 from RPA.core.decorators import operating_system_required
 from . import windows as Windows
 
@@ -19,13 +20,10 @@ else:
     bytes2human = object
 
 
-class OperatingSystem:
+class OperatingSystem(SharedAbc, metaclass=ABCMeta):
     """RPA Framework library containing cross platform keywords for managing
     computer properties and actions.
     """
-
-    def __init__(self):
-        self.logger = logging.getLogger(__name__)
 
     @operating_system_required("Windows")
     def get_boot_time(

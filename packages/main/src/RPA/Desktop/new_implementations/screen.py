@@ -1,14 +1,16 @@
 import os
+from abc import ABC, ABCMeta
 from datetime import time
 from pathlib import Path
 from typing import Any, Union, Tuple
 
+from RPA.Desktop.new_implementations.shared_abc import SharedAbc
 from RPA.Images import Images
-from RPA.core.helpers import clean_filename
+from RPA.core.helpers import clean_filename, delay
 from robot.libraries.BuiltIn import RobotNotRunningError, BuiltIn
 
 
-class Screen:
+class Screen(SharedAbc, metaclass=ABCMeta):
     def get_dialog_rectangle(
         self, ctrl: Any = None, as_dict: bool = False
     ) -> Union[dict, Tuple[int, int, int, int]]:
@@ -155,20 +157,19 @@ class Screen:
         self.logger.info("Open dialog: '%s', '%s'", windowtitle, highlight)
 
         if windowtitle:
-            self.windowtitle = windowtitle
+            self.window_title = windowtitle
 
         app_instance = None
         end_time = time.time() + float(timeout)
         while time.time() < end_time and app_instance is None:
-            for window in self.get_window_list():
-                if window["title"] == self.windowtitle:
+            for window in self.get_window_list:
+                if window["title"] == self.window_title:
                     app_instance = self.connect_by_handle(
                         window["handle"], existing_app=existing_app
                     )
-            time.sleep(0.1)
-
+            delay(0.1)
         if self.dlg is None:
-            raise ValueError("No window with title '{}'".format(self.windowtitle))
+            raise ValueError("No window with title '{}'".format(self.window_title))
 
         if highlight:
             self.dlg.draw_outline()
@@ -197,31 +198,3 @@ class Screen:
         self.logger.info("Minimize dialog: %s", windowtitle)
         self.dlg = pywinauto.Desktop(backend=self._backend)[windowtitle]
         self.dlg.minimize()
-
-    def get_window_list(self):
-        """Get list of open windows
-
-        Window dictionaries contain:
-
-        - title
-        - pid
-        - handle
-
-        :return: list of window dictionaries
-
-        Example:
-
-        .. code-block:: robotframework
-
-            @{windows}    Get Window List
-            FOR  ${window}  IN  @{windows}
-                Log Many  ${window}
-            END
-        """
-        windows = pywinauto.Desktop(backend=self._backend).windows()
-        window_list = []
-        for w in windows:
-            window_list.append(
-                {"title": w.window_text(), "pid": w.process_id(), "handle": w.handle}
-            )
-        return window_list

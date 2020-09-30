@@ -29,12 +29,11 @@ class Desktop(
     ROBOT_LIBRARY_SCOPE = "GLOBAL"
 
     def __init__(self) -> None:
-        self.logger = logging.getLogger(__name__)
         super().__init__()
 
     def __del__(self):
         try:
             # TODO: Do this as RF listener instead of __del__?
-            self.clipboard.clear_clipboard()
+            self.clear_clipboard()
         except RuntimeError as err:
             self.logger.debug("Failed to clear clipboard: %s", err)

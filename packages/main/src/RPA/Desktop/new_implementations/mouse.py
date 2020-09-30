@@ -1,8 +1,11 @@
+from abc import ABCMeta
+
+from RPA.Desktop.new_implementations.shared_abc import SharedAbc
 from RPA.Images import Images
 from RPA.core.helpers import delay
 
 
-class Mouse:
+class Mouse(SharedAbc, metaclass=ABCMeta):
     def mouse_click(
         self,
         locator: str = None,

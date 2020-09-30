@@ -1,6 +1,11 @@
+import os
 import platform
+import subprocess
+from abc import ABC, ABCMeta
 from typing import Any, Optional
 
+from RPA.Desktop.new_implementations.shared_abc import SharedAbc
+from RPA.core.decorators import operating_system_required
 from RPA.core.helpers import delay
 
 SUPPORTED_WINDOWS_BACKENDS = ["uia", "win32"]
@@ -9,28 +14,20 @@ if platform.system() == "Windows":
     import ctypes
     import win32api
     import win32gui
+    import pywinauto
 
 
-class ApplicationManager:
-    def __init__(self):
-        self._apps = {}
-        self._app_instance_id = 0
-        self._active_app_instance = -1
-        self.app = None
-        self.dlg = None
-        self.windowtitle = None
-        self.set_backend()
-
-    def set_backend(self, backend: Optional[str] = None):
+class ApplicationManager(SharedAbc, metaclass=ABCMeta):
+    def validate_backend(self, backend: Optional[str] = None) -> str:
         """ Set interaction backend """
         if platform.system() == "windows":
-            return self._set_windows_backend(backend)
+            return self._validate_windows_backend(backend)
         else:
             # FIXME: Since logger is set in a super class this is very bug prone
-            self.logger.warn("Non-windows backends don't exist yet")
+            self.logger.warning("Non-windows backends don't exist yet")
             # raise NotImplementedError("Set Backend not yet implemented for non-windows")
 
-    def add_app_instance(
+    def _add_app_instance(
         self,
         app: Any = None,
         dialog: bool = True,
@@ -40,7 +37,7 @@ class ApplicationManager:
         if platform.system() == "windows":
             return self._windows_add_app_instance(app, dialog, params)
 
-    def _set_windows_backend(self, backend: Optional[str] = "uia") -> None:
+    def _validate_windows_backend(self, backend: Optional[str] = "uia") -> str:
         """Set Windows backend which is used to interact with Windows
         applications
 
@@ -59,7 +56,7 @@ class ApplicationManager:
 
         """
         if backend and backend.lower() in SUPPORTED_WINDOWS_BACKENDS:
-            self._backend = backend.lower()
+            return backend.lower()
         else:
             raise ValueError("Unsupported Windows backend: %s" % backend)
 
@@ -215,3 +212,185 @@ class ApplicationManager:
                 else:
                     app["app"].kill()
         self._active_app_instance = -1
+
+    # TODO. How to manage app launched by open_file
+    def open_file(self, filename: str) -> bool:
+        """Open associated application when opening file
+
+        :param filename: path to file
+        :return: True if application is opened, False if not
+
+        Example:
+
+        .. code-block:: robotframework
+
+            ${app1}    Open File   /path/to/myfile.txt
+
+        """
+        # FIXME: this never actually returns False if app failed to open.
+        self.logger.info("Open file: %s", filename)
+        if platform.system() == "Windows":
+            # pylint: disable=no-member
+            os.startfile(filename)
+            return True
+        elif platform.system() == "Darwin":
+            subprocess.call(["open", filename])
+            return True
+        else:
+            subprocess.call(["xdg-open", filename])
+            return True
+        return False
+
+    @operating_system_required(["Windows"])
+    def open_application(self, application: str) -> int:
+        """Open application by dispatch method
+
+        This keyword is used to launch Microsoft applications like
+        Excel, Word, Outlook and Powerpoint.
+
+        :param application: name of the application as `str`
+        :return: application instance id
+
+        Example:
+
+        .. code-block:: robotframework
+
+            ${app1}    Open Application   Excel
+            ${app2}    Open Application   Word
+
+        """
+        self.logger.info("Open application: %s", application)
+        app = win32com.client.gencache.EnsureDispatch(f"{application}.Application")
+        app.Visible = True
+        # show eg. file overwrite warning or not
+        if hasattr(self.app, "DisplayAlerts"):
+            app.DisplayAlerts = False
+        params = {
+            "dispatched": True,
+            "startkeyword": "Open Application",
+        }
+        return self.add_app_instance(app, dialog=False, params=params)
+
+    @operating_system_required(["Windows"])
+    def open_executable(
+        self,
+        executable: str,
+        windowtitle: str,
+        backend: str = None,
+        work_dir: str = None,
+    ) -> int:
+        """Open Windows executable. Window title name is required
+        to get handle on the application.
+
+        :param executable: name of the executable
+        :param windowtitle: name of the window
+        :param backend: set Windows backend, default None means using
+         library default value
+        :param work_dir: path to working directory, default None
+        :return: application instance id
+
+        Example:
+
+        .. code-block:: robotframework
+
+            ${app1}    Open Executable   calc.exe  Calculator
+
+        """
+        self.logger.info("Opening executable: %s - window: %s", executable, windowtitle)
+        if backend:
+            self._backend = self.validate_backend(backend)
+        params = {
+            "executable": executable,
+            "windowtitle": windowtitle,
+            "startkeyword": "Open Executable",
+        }
+        self.window_title = windowtitle
+        app = pywinauto.Application(backend=self._backend).start(
+            cmd_line=executable, work_dir=work_dir
+        )
+
+        return self.add_app_instance(app, dialog=False, params=params)
+
+    @operating_system_required(["Windows"])
+    def open_using_run_dialog(self, executable: str, windowtitle: str) -> int:
+        """Open application using Windows run dialog.
+        Window title name is required to get handle on the application.
+
+        :param executable: name of the executable
+        :param windowtitle: name of the window
+        :return: application instance id
+
+        Example:
+
+        .. code-block:: robotframework
+
+            ${app1}    Open Using Run Dialog  notepad  Untitled - Notepad
+
+        """
+        self.send_keys("{VK_LWIN down}r{VK_LWIN up}")
+        delay(1)
+
+        self.send_keys_to_input(executable, send_delay=0.2, enter_delay=0.5)
+
+        app_instance = self.open_dialog(windowtitle)
+        self._apps[app_instance]["windowtitle"] = windowtitle
+        self._apps[app_instance]["executable"] = executable
+        self._apps[app_instance]["startkeyword"] = "Open Using Run Dialog"
+        return app_instance
+
+    @operating_system_required(["Windows"])
+    def open_from_search(self, executable: str, windowtitle: str) -> int:
+        """Open application using Windows search dialog.
+        Window title name is required to get handle on the application.
+
+        :param executable: name of the executable
+        :param windowtitle: name of the window
+        :return: application instance id
+
+        Example:
+
+        .. code-block:: robotframework
+
+            ${app1}    Open From Search  calculator  Calculator
+
+        """
+        self.logger.info("Run from start menu: %s", executable)
+        self.send_keys("{LWIN}")
+        delay(1)
+
+        self.send_keys_to_input(executable)
+
+        app_instance = self.open_dialog(windowtitle)
+        self._apps[app_instance]["windowtitle"] = windowtitle
+        self._apps[app_instance]["executable"] = executable
+        self._apps[app_instance]["startkeyword"] = "Open From Search"
+        return app_instance
+
+    @property
+    def get_window_list(self):
+        """Get list of open windows
+
+        Window dictionaries contain:
+
+        - title
+        - pid
+        - handle
+
+        :return: list of window dictionaries
+
+        Example:
+
+        .. code-block:: robotframework
+
+            @{windows}    Get Window List
+            FOR  ${window}  IN  @{windows}
+                Log Many  ${window}
+            END
+        """
+        windows = pywinauto.Desktop(backend=self._backend).windows()
+        window_list = []
+        for w in windows:
+            window_list.append(
+                {"title": w.window_text(), "pid": w.process_id(), "handle": w.handle}
+            )
+        return window_list

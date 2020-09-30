@@ -1,10 +1,12 @@
-from typing import Any
+from abc import ABC, ABCMeta
+from typing import Any, Tuple
 
+from RPA.Desktop.new_implementations.shared_abc import SharedAbc
 from RPA.core.helpers import delay
 
 
-class DragAndDrop:
-    def _validate_target(self, target: dict, target_locator: str) -> Any:
+class DragAndDrop(SharedAbc, metaclass=ABCMeta):
+    def _validate_target(self, target: dict, target_locator: str) -> Tuple[int, int]:
         target_x = target_y = 0
         if target_locator is not None:
             self.switch_to_application(target["id"])
