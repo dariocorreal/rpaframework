@@ -26,6 +26,7 @@ class Keyboard(SharedAbc, metaclass=ABCMeta):
             raise ValueError("No dialog open")
         self.dlg.type_keys(keys)
 
+    @keyword
     def type_into(self, locator: str, keys: str, empty_field: bool = False) -> None:
         """Type keys into element matched by given locator.
 

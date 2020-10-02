@@ -94,12 +94,7 @@ class ApplicationManager(SharedAbc, metaclass=ABCMeta):
             self._active_app_instance = self._app_instance_id
             return self._active_app_instance
 
-    @keyword
-    def open_application(self):
-        # TODO: implement behaviour here. Windows specifically has a ton of different strategies to support
-        pass
-
-    @keyword
+    # @keyword
     def switch_to_application(self, app_id: int) -> None:
         """Switch to application by id.
 
@@ -203,9 +198,11 @@ class ApplicationManager(SharedAbc, metaclass=ABCMeta):
         self.logger.info("Quit application: %s (%s)", app_id, app)
         if send_keys:
             self.switch_to_application(app_id)
+            # FIXME: this is windows only
             self.send_keys("%{F4}")
         else:
             if app["dispatched"]:
+                # FIXME: this is windows only
                 app["app"].Quit()
             else:
                 if "process" in app and app["process"] > 0:
@@ -215,12 +212,43 @@ class ApplicationManager(SharedAbc, metaclass=ABCMeta):
                     app["app"].kill()
         self._active_app_instance = -1
 
+    @keyword
+    def open_application_by_path(self, path) -> subprocess.Popen:
+        """Open application by path.
+
+        Example:
+        .. code-block:: robotframework
+
+            ${app}    Open Application   /path/to/myfile.exe
+
+        """
+        self.logger.info("Open file: %s", path)
+        if platform.system() == "Windows":
+            if not path.endswith(".exe"):
+                raise ValueError(
+                    "path argument needs to be path to a launchable application"
+                )
+            self._add_app_instance()
+            return subprocess.Popen([path])
+        elif platform.system() == "Darwin":
+            if not path.endswith(".app"):
+                raise ValueError(
+                    "path argument needs to be path to a launchable application"
+                )
+            return subprocess.Popen(["open", path])
+        else:
+            if not os.access(path, os.X_OK):
+                raise ValueError(
+                    "path argument needs to be path to a launchable application"
+                )
+            return subprocess.Popen(["xdg-open", path])
+
     # TODO. How to manage app launched by open_file
-    def open_file(self, filename: str) -> bool:
+    def open_file(self, filename: str) -> subprocess.Popen:
         """Open associated application when opening file
 
         :param filename: path to file
-        :return: True if application is opened, False if not
+        :return: subprocess.Popen object representing the opened application
 
         Example:
 
@@ -229,19 +257,14 @@ class ApplicationManager(SharedAbc, metaclass=ABCMeta):
             ${app1}    Open File   /path/to/myfile.txt
 
         """
-        # FIXME: this never actually returns False if app failed to open.
         self.logger.info("Open file: %s", filename)
         if platform.system() == "Windows":
             # pylint: disable=no-member
-            os.startfile(filename)
-            return True
+            return subprocess.Popen([filename])
         elif platform.system() == "Darwin":
-            subprocess.call(["open", filename])
-            return True
+            return subprocess.Popen(["open", filename])
         else:
-            subprocess.call(["xdg-open", filename])
-            return True
-        return False
+            return subprocess.Popen(["xdg-open", filename])
 
     @operating_system_required(["Windows"])
     def open_application(self, application: str) -> int:
@@ -271,7 +294,7 @@ class ApplicationManager(SharedAbc, metaclass=ABCMeta):
             "dispatched": True,
             "startkeyword": "Open Application",
         }
-        return self.add_app_instance(app, dialog=False, params=params)
+        return self._add_app_instance(app, dialog=False, params=params)
 
     @operating_system_required(["Windows"])
     def open_executable(
@@ -311,7 +334,7 @@ class ApplicationManager(SharedAbc, metaclass=ABCMeta):
             cmd_line=executable, work_dir=work_dir
         )
 
-        return self.add_app_instance(app, dialog=False, params=params)
+        return self._add_app_instance(app, dialog=False, params=params)
 
     @operating_system_required(["Windows"])
     def open_using_run_dialog(self, executable: str, windowtitle: str) -> int:

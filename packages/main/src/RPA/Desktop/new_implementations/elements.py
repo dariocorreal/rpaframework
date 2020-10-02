@@ -8,6 +8,7 @@ from typing import Any
 
 from RPA.Desktop.new_implementations.shared_abc import SharedAbc
 from RPA.core.helpers import clean_filename, delay
+from robot.api.deco import keyword
 
 from .locator_helpers import determine_search_criteria
 
@@ -71,6 +72,7 @@ class Elements(SharedAbc, metaclass=ABCMeta):
             element_text["legacy_name"] = str(legacy["Name"]) if legacy else None
         return element_text
 
+    @keyword
     def get_element(self, locator: str, screenshot: bool = False) -> Any:
         """Get element by locator.
 
@@ -242,6 +244,7 @@ class Elements(SharedAbc, metaclass=ABCMeta):
                 "Unable to access menu item '%s'" % menuitem
             ) from e
 
+    @keyword
     def wait_for_element(
         self,
         locator: str,
