@@ -10,7 +10,7 @@ from RPA.Desktop.new_implementations.shared_abc import SharedAbc
 from RPA.core.helpers import clean_filename, delay
 from robot.api.deco import keyword
 
-from .locator_helpers import determine_search_criteria
+from RPA.Desktop.new_implementations.locator_helpers import determine_search_criteria
 
 
 class MenuItemNotFoundError(Exception):

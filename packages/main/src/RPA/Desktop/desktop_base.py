@@ -3,10 +3,8 @@
 from RPA.Desktop.new_implementations import (
     ApplicationManager,
     Clipboard,
-    Elements,
     Keyboard,
     Mouse,
-    OperatingSystem,
     Screen,
 )
 from robot.api.deco import library
@@ -16,10 +14,8 @@ from robot.api.deco import library
 class Desktop(
     ApplicationManager,
     Clipboard,
-    Elements,
     Keyboard,
     Mouse,
-    OperatingSystem,
     Screen,
 ):
     """Desktop base class, handles state and exposed as the robot library RPA.Desktop"""

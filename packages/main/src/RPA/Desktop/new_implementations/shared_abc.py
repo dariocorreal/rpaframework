@@ -18,63 +18,13 @@ class SharedAbc(ABC):
         self.app = None
         self.dlg = None
         self.window_title: Optional[str] = None
-        self._backend = self.validate_backend()
-
-    @property
-    @abstractmethod
-    def get_window_list(self):
-        ...
-
-    @abstractmethod
-    def validate_backend(self, backend: Optional[str] = None) -> str:
-        ...
 
     @abstractmethod
     def press_keys(self, keys: str) -> None:
         ...
 
     @abstractmethod
-    def _add_app_instance(
-        self, app: Any = None, dialog: bool = True, params: dict = None
-    ):
-        ...
-
-    @abstractmethod
-    def switch_to_application(self, app_id: int) -> None:
-        ...
-
-    @abstractmethod
-    def _get_element_coordinates(self, rectangle: Any) -> Any:
-        ...
-
-    @abstractmethod
-    def restore_dialog(self, windowtitle: str = None) -> None:
-        ...
-
-    @abstractmethod
-    def open_dialog(
-        self,
-        windowtitle: str = None,
-        highlight: bool = False,
-        timeout: int = 10,
-        existing_app: bool = False,
-    ) -> Any:
-        ...
-
-    @abstractmethod
-    def connect_by_handle(self, param, existing_app):
-        ...
-
-    @abstractmethod
-    def kill_process_by_pid(self, pid: int) -> None:
-        ...
-
-    @abstractmethod
     def find_element(self, locator: str, search_criteria: str = None) -> Any:
-        ...
-
-    @abstractmethod
-    def get_app(self, app_id: int = None) -> Any:
         ...
 
     @abstractmethod

@@ -8,7 +8,6 @@ from abc import ABCMeta, abstractmethod, ABC
 from collections import OrderedDict
 from typing import Any
 
-from RPA.Desktop.new_implementations.shared_abc import SharedAbc
 from RPA.core.decorators import operating_system_required
 
 if platform.system() == "Windows":
@@ -87,7 +86,6 @@ class _OperatingSystem(ABC):
 
 
 class _UnixlikeOperatingSystem(_OperatingSystem):
-    @operating_system_required("Darwin", "Linux")
     def put_system_to_sleep(self) -> None:
         """Puts system to sleep mode
 
