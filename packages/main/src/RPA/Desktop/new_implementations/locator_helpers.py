@@ -42,7 +42,8 @@ def determine_search_criteria(locator: str) -> Any:
 
 
 def locator_to_rectangle(locator: str) -> Region:
-    """ Convert a locator to a rectangle for clicking or other coordinate-dependent purposes."""
+    """Convert a locator to a rectangle for clicking
+    or other coordinate-dependent purposes."""
     if locator.startswith("alias:"):
         # FIXME: convert alias to actual image
 

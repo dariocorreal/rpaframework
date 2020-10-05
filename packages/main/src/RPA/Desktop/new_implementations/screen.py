@@ -6,7 +6,7 @@ from typing import Union, Literal
 from RPA.Desktop.new_implementations.locator_helpers import locator_to_rectangle
 from RPA.Desktop.new_implementations.shared_abc import SharedAbc
 from RPA.Images import Images, Region
-from RPA.core.helpers import clean_filename, delay
+from RPA.core.helpers import clean_filename
 from robot.api.deco import keyword
 from robot.libraries.BuiltIn import RobotNotRunningError, BuiltIn
 
@@ -21,9 +21,9 @@ class Screen(SharedAbc, metaclass=ABCMeta):
     ) -> None:
         """Save screenshot into filename.
 
-        :param target: "desktop" or a locator pointing to an element to take screenshot of
+        :param target: "desktop" or a locator pointing to an element to
+        take screenshot of
         :param filename: name of the file
-        :param ctrl: take control screenshot, defaults to None
         :param overwrite: file is overwritten if True, defaults to False
 
         Example:

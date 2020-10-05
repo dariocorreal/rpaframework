@@ -8,25 +8,6 @@ from robot.api.deco import keyword
 
 
 class ApplicationManager(SharedAbc, metaclass=ABCMeta):
-    def close_all_applications(self) -> None:
-        """Close all applications
-
-        Example:
-
-        .. code-block:: robotframework
-
-            Open Application   Excel
-            Open Application   Word
-            Open Executable    notepad.exe   Untitled - Notepad
-            Close All Applications
-
-        """
-        self.logger.info("Closing all applications")
-        self.logger.debug("Applications in memory: %d", len(self._apps))
-        for aid in list(self._apps):
-            self.quit_application(aid)
-            del self._apps[aid]
-
     @keyword
     def quit_application(self, app_id: str = None, send_keys: bool = False) -> None:
         raise NotImplementedError("Quit Application is not yet implemented")
@@ -82,4 +63,3 @@ class ApplicationManager(SharedAbc, metaclass=ABCMeta):
             return subprocess.Popen(["open", filename])
         else:
             return subprocess.Popen(["xdg-open", filename])
-

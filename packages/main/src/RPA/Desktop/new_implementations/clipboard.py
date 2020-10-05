@@ -1,6 +1,6 @@
 # pylint: disable=c-extension-no-member
 import platform
-from abc import ABCMeta, ABC, abstractmethod
+from abc import ABC, abstractmethod
 
 if platform.system() == "Windows":
     import win32clipboard
