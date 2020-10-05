@@ -3,7 +3,6 @@
 from RPA.Desktop.new_implementations import (
     ApplicationManager,
     Clipboard,
-    DragAndDrop,
     Elements,
     Keyboard,
     Mouse,
@@ -17,7 +16,6 @@ from robot.api.deco import library
 class Desktop(
     ApplicationManager,
     Clipboard,
-    DragAndDrop,
     Elements,
     Keyboard,
     Mouse,

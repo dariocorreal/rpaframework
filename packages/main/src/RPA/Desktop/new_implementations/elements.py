@@ -484,7 +484,7 @@ class Elements(SharedAbc, metaclass=ABCMeta):
 
         return controls, elements
 
-    def _parse_element_attributes(self, element: dict) -> dict:
+    def _parse_element_attributes(self, element: dict) -> Optional[dict]:
         """Return filtered element dictionary for an element.
 
         :param element: should contain `element_info` attribute

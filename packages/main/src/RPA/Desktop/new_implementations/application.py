@@ -354,8 +354,7 @@ class ApplicationManager(SharedAbc, metaclass=ABCMeta):
         """
         self.send_keys("{VK_LWIN down}r{VK_LWIN up}")
         delay(1)
-
-        self.send_keys_to_input(executable, send_delay=0.2, enter_delay=0.5)
+        self.send_keys("Enter")
 
         app_instance = self.open_dialog(windowtitle)
         self._apps[app_instance]["windowtitle"] = windowtitle
@@ -383,7 +382,7 @@ class ApplicationManager(SharedAbc, metaclass=ABCMeta):
         self.send_keys("{LWIN}")
         delay(1)
 
-        self.send_keys_to_input(executable)
+        self.press_keys("Enter")
 
         app_instance = self.open_dialog(windowtitle)
         self._apps[app_instance]["windowtitle"] = windowtitle

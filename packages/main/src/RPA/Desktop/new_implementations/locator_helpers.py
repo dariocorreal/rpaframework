@@ -1,5 +1,7 @@
 from typing import Any
 
+from RPA.Images import Region, Images
+
 
 def determine_search_criteria(locator: str) -> Any:
     """Check search criteria from locator.
@@ -37,3 +39,18 @@ def determine_search_criteria(locator: str) -> Any:
         search_criteria = "any"
 
         return search_criteria, locator
+
+
+def locator_to_rectangle(locator: str) -> Region:
+    """ Convert a locator to a rectangle for clicking or other coordinate-dependent purposes."""
+    if locator.startswith("alias:"):
+        # FIXME: convert alias to actual image
+
+        template = convert_locator_to_template(locator)
+        return Images().find_and_validate_template_on_screen(template)[0]
+    elif locator.startswith("coordinates"):
+        locator_content = locator[len("coordinates:") :]
+        x, y = map(lambda x: float(x), locator_content.split(","))
+        return Region(x, y, x, y)
+    else:
+        raise ValueError("Unsupported locator strategy")

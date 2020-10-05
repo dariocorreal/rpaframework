@@ -2,6 +2,8 @@ import logging
 from abc import abstractmethod, ABC
 from typing import Any, Optional
 
+from RPA.Desktop.new_implementations.types import MouseAction
+
 
 class SharedAbc(ABC):
     """Abstract class for sharing methods between the modules in
@@ -28,17 +30,7 @@ class SharedAbc(ABC):
         ...
 
     @abstractmethod
-    def send_keys(self, keys: str) -> None:
-        ...
-
-    @abstractmethod
-    def send_keys_to_input(
-        self,
-        keys_to_type: str,
-        with_enter: bool = True,
-        send_delay: float = 0.5,
-        enter_delay: float = 1.5,
-    ) -> None:
+    def press_keys(self, keys: str) -> None:
         ...
 
     @abstractmethod
@@ -54,22 +46,6 @@ class SharedAbc(ABC):
     @abstractmethod
     def _get_element_coordinates(self, rectangle: Any) -> Any:
         ...
-
-    # TODO: Use a shared geometry module
-    def calculate_rectangle_center(self, rectangle: Any) -> Any:
-        """Calculate x and y center coordinates from rectangle.
-        :param rectangle: element rectangle coordinates
-        :return: x and y coordinates of rectangle center
-        Example:
-        .. code-block:: robotframework
-            Open Using Run Dialog   calc  Calculator
-            &{rect}=        Get Element Rectangle    CalculatorResults
-            ${x}  ${y}=     Calculate Rectangle Center   ${rect}
-        """
-        left, top, right, bottom = self._get_element_coordinates(rectangle)
-        x = int((right - left) / 2) + left
-        y = int((bottom - top) / 2) + top
-        return x, y
 
     @abstractmethod
     def restore_dialog(self, windowtitle: str = None) -> None:
@@ -102,12 +78,6 @@ class SharedAbc(ABC):
         ...
 
     @abstractmethod
-    def mouse_click_coords(
-        self, x: int, y: int, ctype: str = "click", delay_time: float = None
-    ) -> None:
-        ...
-
-    @abstractmethod
     def screenshot(
         self,
         filename: str,
@@ -115,5 +85,15 @@ class SharedAbc(ABC):
         ctrl: Any = None,
         desktop: bool = False,
         overwrite: bool = False,
+    ) -> None:
+        ...
+
+    @abstractmethod
+    def mouse_click(
+        self,
+        locator: str = None,
+        off_x: int = 0,
+        off_y: int = 0,
+        click_type: MouseAction = MouseAction.click,
     ) -> None:
         ...

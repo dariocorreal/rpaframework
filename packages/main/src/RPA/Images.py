@@ -3,6 +3,7 @@ import sys
 import time
 from dataclasses import dataclass, astuple
 from pathlib import Path
+from typing import List
 
 from PIL import Image
 from PIL import ImageDraw
@@ -211,7 +212,7 @@ class Images:
 
     def find_template_in_image(
         self, image, template, region=None, limit=None, tolerance=None
-    ):
+    ) -> List[Region]:
         """Attempt to find the template from the given image.
 
         :param image:       Path to image or Image instance, used to search from
@@ -256,11 +257,17 @@ class Images:
 
         return matches
 
-    def find_template_on_screen(self, template, **kwargs):
+    def find_template_on_screen(self, template, **kwargs) -> List[Region]:
         """Attempt to find the template image from the current desktop.
         For argument descriptions, see ``find_template_in_image()``
         """
         return self.find_template_in_image(self.take_screenshot(), template, **kwargs)
+
+    def find_and_validate_template_on_screen(self, template, **kwargs) -> List[Region]:
+        finds = self.find_template_in_image(self.take_screenshot(), template, **kwargs)
+        if len(finds) > 1:
+            self.logger.warning("Found more than 1 instance of template")
+        return finds
 
     def wait_template_on_screen(self, template, timeout=5, **kwargs):
         """Wait for template image to appear on current desktop.
