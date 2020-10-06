@@ -1,7 +1,7 @@
 import os
 from abc import ABCMeta
 from pathlib import Path
-from typing import Union, Literal
+from typing import Union, Literal, List
 
 from RPA.Desktop.new_implementations.locator_helpers import locator_to_rectangle
 from RPA.Desktop.new_implementations.shared_abc import SharedAbc
@@ -63,3 +63,9 @@ class Screen(SharedAbc, metaclass=ABCMeta):
     def find_element(self, locator: str) -> Region:
         element_location = locator_to_rectangle(locator)
         return element_location
+
+    @keyword
+    def get_display_dimensions(self) -> List[Region]:
+        """Returns a list of current displays. Index 0 contains a virtual display
+        which consists of all the displays combined."""
+        return Images().display_rectangles

@@ -3,7 +3,7 @@ import sys
 import time
 from dataclasses import dataclass, astuple
 from pathlib import Path
-from typing import List
+from typing import List, TypedDict
 
 from PIL import Image
 from PIL import ImageDraw
@@ -68,6 +68,13 @@ def to_region(obj):
     return Region(*(int(i) for i in obj))
 
 
+class MssDimensions(TypedDict):
+    left: int
+    top: int
+    width: int
+    height: int
+
+
 @dataclass
 class Point:
     """Container for a 2D point."""
@@ -97,6 +104,16 @@ class Region:
     @classmethod
     def from_size(cls, x, y, width, height):
         return cls(x, y, x + width, y + height)
+
+    @classmethod
+    def from_mss_dimensions(cls, mss_dimensions: MssDimensions):
+        """Helper for mapping mss display dimension objects into regions"""
+        return cls.from_size(
+            mss_dimensions["left"],
+            mss_dimensions["top"],
+            mss_dimensions["width"],
+            mss_dimensions["height"],
+        )
 
     @property
     def width(self):
@@ -323,6 +340,11 @@ class Images:
         :param point:   coordinates for pixel or Point object
         """
         return self.get_pixel_color_in_image(self.take_screenshot(), point)
+
+    @property
+    def display_rectangles(self) -> List[Region]:
+        with mss.mss() as sct:
+            return list(map(Region.from_mss_dimensions, sct.monitors))
 
 
 class TemplateMatcher:
