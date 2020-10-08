@@ -1,26 +1,27 @@
 import logging
-import sys
 import time
-from dataclasses import dataclass, astuple
+from dataclasses import dataclass
 from pathlib import Path
-from typing import List, TypedDict
-
+from typing import List
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageOps
 
 try:
     # Attempt to enable DPI awareness, for platforms that support it.
-    # Needs to be enabled `before` pyscreenshot is imported.
+    # Needs to be enabled `before` screenshot libraries are imported.
     import ctypes
 
     ctypes.windll.user32.SetProcessDPIAware()
 except AttributeError:
     pass
+
 # TODO: figure out if DPI awareness is necessary with mss
 import mss
-
+from RPA.core import geometry
+from RPA.core.geometry import Region
 from RPA.core.notebook import notebook_image
+
 
 try:
     # Check if opencv is available,
@@ -33,6 +34,13 @@ except ImportError:
     HAS_OPENCV = False
 
 
+def to_image(obj):
+    """Convert `obj` to instance of Pillow's Image class."""
+    if obj is None or isinstance(obj, Image.Image):
+        return obj
+    return Image.open(obj)
+
+
 def clamp(minimum, value, maximum):
     """Clamp value between given minimum and maximum."""
     return max(minimum, min(value, maximum))
@@ -41,107 +49,6 @@ def clamp(minimum, value, maximum):
 def chunks(obj, size, start=0):
     """Convert `obj` container to list of chunks of `size`."""
     return [obj[i : i + size] for i in range(start, len(obj), size)]
-
-
-def to_image(obj):
-    """Convert `obj` to instance of Pillow's Image class."""
-    if obj is None or isinstance(obj, Image.Image):
-        return obj
-    return Image.open(obj)
-
-
-def to_point(obj):
-    """Convert `obj` to instance of Point."""
-    if obj is None or isinstance(obj, Point):
-        return obj
-    if isinstance(obj, str):
-        obj = obj.split(",")
-    return Point(*(int(i) for i in obj))
-
-
-def to_region(obj):
-    """Convert `obj` to instance of Region."""
-    if obj is None or isinstance(obj, Region):
-        return obj
-    if isinstance(obj, str):
-        obj = obj.split(",")
-    return Region(*(int(i) for i in obj))
-
-
-class MssDimensions(TypedDict):
-    left: int
-    top: int
-    width: int
-    height: int
-
-
-@dataclass
-class Point:
-    """Container for a 2D point."""
-
-    x: int
-    y: int
-
-    def as_tuple(self):
-        return astuple(self)
-
-
-@dataclass
-class Region:
-    """Container for a 2D rectangular region."""
-
-    left: int
-    top: int
-    right: int
-    bottom: int
-
-    def __post_init__(self):
-        if self.left >= self.right:
-            raise ValueError("Invalid width")
-        if self.top >= self.bottom:
-            raise ValueError("Invalid height")
-
-    @classmethod
-    def from_size(cls, x, y, width, height):
-        return cls(x, y, x + width, y + height)
-
-    @classmethod
-    def from_mss_dimensions(cls, mss_dimensions: MssDimensions):
-        """Helper for mapping mss display dimension objects into regions"""
-        return cls.from_size(
-            mss_dimensions["left"],
-            mss_dimensions["top"],
-            mss_dimensions["width"],
-            mss_dimensions["height"],
-        )
-
-    @property
-    def width(self):
-        return self.right - self.left
-
-    @property
-    def height(self):
-        return self.bottom - self.top
-
-    @property
-    def area(self):
-        return self.width * self.height
-
-    @property
-    def center(self):
-        return Point(
-            x=int((self.left + self.right) / 2), y=int((self.top + self.bottom) / 2)
-        )
-
-    def as_tuple(self):
-        return astuple(self)
-
-    def move(self, left, top):
-        width, height = self.width, self.height
-        self.left = clamp(0, self.left + left, sys.maxsize)
-        self.top = clamp(0, self.top + top, sys.maxsize)
-        self.right = self.left + width
-        self.bottom = self.top + height
 
 
 @dataclass
@@ -182,6 +89,16 @@ class Images:
         self.logger = logging.getLogger(__name__)
         self.matcher = TemplateMatcher(opencv=HAS_OPENCV)
 
+    @property
+    def display_rectangles(self) -> List[Region]:
+        with mss.mss() as sct:
+            return [
+                Region.from_size(
+                    monitor["left"], monitor["top"], monitor["width"], monitor["height"]
+                )
+                for monitor in sct.monitors
+            ]
+
     def take_screenshot(self, filename=None, region=None) -> Image:
         """Take a screenshot of the current desktop.
 
@@ -189,10 +106,10 @@ class Images:
         :param region:      Region to crop screenshot to
         """
 
-        region = to_region(region)
+        region = geometry.to_region(region)
 
         with mss.mss() as sct:
-            if region is not None:
+            if region:
                 image = sct.grab(region.as_tuple())
             else:
                 # mss uses the first monitor on the array as an
@@ -202,6 +119,7 @@ class Images:
         if filename is not None:
             filename = Path(filename).with_suffix(".png")
             mss.tools.to_png(image.rgb, image.size, output=filename)
+
             notebook_image(filename)
             self.logger.info("Saved screenshot as '%s'", filename)
 
@@ -216,7 +134,7 @@ class Images:
         :param region:      Region to crop image to
         :param filename:    Save cropped image to filename
         """
-        region = to_region(region)
+        region = geometry.to_region(region)
         image = to_image(image)
 
         image = image.crop(region.as_tuple())
@@ -246,7 +164,7 @@ class Images:
 
         # Crop image if requested
         if region is not None:
-            region = to_region(region)
+            region = geometry.to_region(region)
             image = image.crop(region.as_tuple())
 
         # Verify template still fits in image
@@ -308,7 +226,7 @@ class Images:
         :param width:   line width of rectangle
         """
         image = to_image(image)
-        region = to_region(region)
+        region = geometry.to_region(region)
 
         draw = ImageDraw.Draw(image)
         draw.rectangle(region.as_tuple(), outline=color, width=int(width))
@@ -330,7 +248,7 @@ class Images:
         :param image:   image to get pixel from
         :param point:   coordinates for pixel or Point object
         """
-        point = to_point(point)
+        point = geometry.to_point(point)
         pixel = image.getpixel(point.as_tuple())
         return RGB.from_pixel(pixel)
 
@@ -340,11 +258,6 @@ class Images:
         :param point:   coordinates for pixel or Point object
         """
         return self.get_pixel_color_in_image(self.take_screenshot(), point)
-
-    @property
-    def display_rectangles(self) -> List[Region]:
-        with mss.mss() as sct:
-            return list(map(Region.from_mss_dimensions, sct.monitors))
 
 
 class TemplateMatcher:
