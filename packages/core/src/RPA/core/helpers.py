@@ -15,6 +15,9 @@ def delay(sleeptime: float = 0.0):
 
     :param sleeptime: seconds as float, defaults to 0
     """
+    if delay is None:
+        return
+
     sleeptime = float(sleeptime)
 
     if sleeptime > 0:
