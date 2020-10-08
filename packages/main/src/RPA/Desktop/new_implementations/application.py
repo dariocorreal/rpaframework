@@ -8,7 +8,6 @@ from robot.api.deco import keyword
 
 
 class ApplicationManager(SharedAbc, metaclass=ABCMeta):
-    @keyword
     def quit_application(self, app_id: str = None, send_keys: bool = False) -> None:
         raise NotImplementedError("Quit Application is not yet implemented")
 
