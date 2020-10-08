@@ -3,7 +3,15 @@ import time
 from robot.api.deco import keyword
 from robotlibcore import DynamicCore
 
-from RPA.core.geometry import Region
+from RPA.core.locators import (
+    LocatorsDatabase,
+    Locator,
+    Coordinates,
+    Offset,
+    ImageTemplate,
+)
+from RPA.core.geometry import Point
+from RPA.Images import Images
 from RPA.Desktop.keywords import (
     ApplicationKeywords,
     ClipboardKeywords,
@@ -35,15 +43,26 @@ class Desktop(DynamicCore):
         super().__init__(libraries)
 
     @keyword
-    def find_element(self, locator: str) -> Region:
-        """Find an element defined by locator, and return it's
-        bounding rectangle.
-        """
-        # TODO: Add alias support
-        # TODO: Add image/template support
-        # TODO: Add offset/coordinates support
-        del locator
-        return Region(0, 0, 0, 0)
+    def find_element(self, locator: str) -> Point:
+        """Find an element defined by locator, and return its position."""
+        if ":" not in locator:
+            locator = LocatorsDatabase.load_by_name(locator)
+        else:
+            locator = Locator.from_string(locator)
+
+        if isinstance(locator, Coordinates):
+            return Point(locator.x, locator.y)
+        elif isinstance(locator, Offset):
+            position = self.get_mouse_position()
+            position.offset(locator.x, locator.y)
+            return position
+        elif isinstance(locator, ImageTemplate):
+            match = Images().find_template_on_screen(
+                locator.path, tolerance=locator.tolerance, limit=1
+            )
+            return match[0].center
+        else:
+            raise NotImplementedError(f"Unsupported locator: {locator}")
 
     def wait_for_element(
         self, locator: str, timeout: float = 10.0, interval: float = 0.5
