@@ -1,17 +1,37 @@
 import pyperclip
-from RPA.Desktop.keywords import LibraryContext
+from RPA.Desktop.keywords import LibraryContext, keyword
 
 
 class ClipboardKeywords(LibraryContext):
     """Keywords for interacting with the system clipboard."""
 
-    # TODO: Add keywords for copying/pasting to GUI elements
+    @keyword
+    def copy_to_clipboard(self, locator):
+        """Read value to system clipboard from given element."""
+        match = self.find_element(locator)
+        self.click(locator, "triple click")
+        self.press_keys("ctrl", "c")
+        return self.get_clipboard_value()
 
-    def copy_to_clipboard(self, text):
-        pyperclip.copy(text)
+    @keyword
+    def paste_from_clipboard(self, locator):
+        """Paste value from system clipboard into given element."""
+        match = self.find_element(locator)
+        text = pyperclip.paste()
+        self.click(match)
+        self.type_text(text)
 
-    def paste_from_clipboard(self):
+    @keyword
+    def clear_clipboard(self):
+        """Clear the system clipboard."""
+        pyperclip.copy("")
+
+    @keyword
+    def get_clipboard_value(self):
+        """Read current value from system clipboard."""
         return pyperclip.paste()
 
-    def clear_clipboard(self):
-        pyperclip.copy("")
+    @keyword
+    def set_clipboard_value(self, text):
+        """Write given value to system clipboard."""
+        pyperclip.copy(text)

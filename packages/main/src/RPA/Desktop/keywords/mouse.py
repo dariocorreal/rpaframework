@@ -7,7 +7,7 @@ from RPA.core.geometry import Point
 from RPA.Desktop.keywords import LibraryContext
 
 
-class MouseAction(Enum):
+class Action(Enum):
     """Possible mouse click actions."""
 
     click = 0
@@ -15,6 +15,30 @@ class MouseAction(Enum):
     double_click = 1
     triple_click = 2
     right_click = 3
+
+
+def to_action(value):
+    """Convert value to Action enum."""
+    if isinstance(value, Action):
+        return value
+
+    sanitized = str(value).lower().strip().replace(" ", "_")
+    try:
+        return Action[sanitized]
+    except KeyError:
+        raise ValueError(f"Unknown mouse action: {value}")
+
+
+def to_button(value):
+    """Convert value to Button enum."""
+    if isinstance(value, Button):
+        return value
+
+    sanitized = str(value).lower().strip().replace(" ", "_")
+    try:
+        return Button[sanitized]
+    except KeyError:
+        raise ValueError(f"Unknown mouse button: {value}")
 
 
 class MouseKeywords(LibraryContext):
@@ -26,38 +50,41 @@ class MouseKeywords(LibraryContext):
 
     def _move(self, point: Point) -> None:
         """Move mouse to given point."""
-        # TODO: Clamp to screen dimensions
+        # TODO: Clamp to screen dimensions?
         self.logger.info("Moving mouse to (%d, %d)", *point)
         self._mouse.position = point.as_tuple()
 
     def _click(
-        self, action: MouseAction = MouseAction.click, point: Optional[Point] = None
+        self, action: Action = Action.click, point: Optional[Point] = None
     ) -> None:
         """Perform defined mouse action, and optionally move to given point first."""
+        action = to_action(action)
+
         if point:
             self._move(point)
 
         self.logger.info("Performing mouse action: %s", action)
 
-        if action is MouseAction.click:
+        if action is Action.click:
             self._mouse.click(Button.left)
-        elif action is MouseAction.double_click:
+        elif action is Action.double_click:
             self._mouse.click(Button.left, 2)
-        elif action is MouseAction.triple_click:
+        elif action is Action.triple_click:
             self._mouse.click(Button.left, 3)
-        elif action is MouseAction.right_click:
+        elif action is Action.right_click:
             self._mouse.click(Button.right)
         else:
-            # FIXME: mypy should handle enum exhaustivity validation
+            # TODO: mypy should handle enum exhaustivity validation
             raise ValueError(f"Unsupported action: {action}")
 
     @keyword
     def click(
         self,
         locator: Optional[str] = None,
-        action: MouseAction = MouseAction.click,
+        action: Action = Action.click,
     ) -> None:
         """Click at the element indicated by locator."""
+        action = to_action(action)
         if locator:
             match = self.find_element(locator)
             self._click(action, match)
@@ -70,9 +97,10 @@ class MouseKeywords(LibraryContext):
         locator: Optional[str] = None,
         x: int = 0,
         y: int = 0,
-        action: MouseAction = MouseAction.click,
+        action: Action = Action.click,
     ) -> None:
         """Click at a given pixel offset from the given locator."""
+        action = to_action(action)
         if locator:
             match = self.find_element(locator)
             match.offset(x, y)
@@ -94,14 +122,16 @@ class MouseKeywords(LibraryContext):
         self._move(match)
 
     @keyword
-    def press_mouse_button(self, key: Button = Button.left) -> None:
+    def press_mouse_button(self, button: Button = Button.left) -> None:
         """Press down mouse button and keep it pressed."""
-        self._mouse.press(key)
+        button = to_button(button)
+        self._mouse.press(button)
 
     @keyword
-    def release_mouse_button(self, key: Button = Button.left) -> None:
+    def release_mouse_button(self, button: Button = Button.left) -> None:
         """Release mouse button that was previously pressed."""
-        self._mouse.release(key)
+        button = to_button(button)
+        self._mouse.release(button)
 
     @keyword
     def drag_and_drop(
