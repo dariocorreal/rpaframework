@@ -8,9 +8,8 @@ class ClipboardKeywords(LibraryContext):
     @keyword
     def copy_to_clipboard(self, locator):
         """Read value to system clipboard from given element."""
-        match = self.find_element(locator)
-        self.click(locator, "triple click")
-        self.press_keys("ctrl", "c")
+        self.ctx.click(locator, "triple click")
+        self.ctx.press_keys("ctrl", "c")
         return self.get_clipboard_value()
 
     @keyword
@@ -18,8 +17,8 @@ class ClipboardKeywords(LibraryContext):
         """Paste value from system clipboard into given element."""
         match = self.find_element(locator)
         text = pyperclip.paste()
-        self.click(match)
-        self.type_text(text)
+        self.ctx.click(match)
+        self.ctx.type_text(text)
 
     @keyword
     def clear_clipboard(self):

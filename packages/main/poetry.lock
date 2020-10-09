@@ -1322,12 +1322,32 @@ python-versions = "^3.6"
 develop = false
 
 [package.dependencies]
+pillow = ">=7.0.0,<8.0.0"
 selenium = ">=3.141.0,<4.0.0"
 webdrivermanager = ">=0.7.4"
 
 [package.source]
 type = "directory"
 url = "../core"
+
+[[package]]
+name = "rpaframework-recognition"
+version = "0.1.0"
+description = "Core utilities used by RPA Framework"
+category = "main"
+optional = true
+python-versions = "^3.6"
+develop = false
+
+[package.dependencies]
+numpy = ">=1.18.2,<2.0.0"
+opencv-python = ">=4.2.0,<5.0.0"
+pillow = ">=7.0.0,<8.0.0"
+rpaframework-core = "2.0.0"
+
+[package.source]
+type = "directory"
+url = "../recognition"
 
 [[package]]
 name = "rsa"
@@ -1585,13 +1605,13 @@ testing = ["pytest (>=3.5,<3.7.3 || >3.7.3)", "pytest-checkdocs (>=1.2.3)", "pyt
 
 [extras]
 aws = ["boto3"]
-cv = ["opencv-python", "numpy"]
-google = ["grpcio", "google-cloud-vision", "google-cloud-language", "google-cloud-videointelligence", "google-cloud-translate", "google-cloud-texttospeech", "google-cloud-speech", "google-cloud-storage", "google-api-python-client", "google-auth-httplib2", "google-auth-oauthlib"]
+cv = ["rpaframework-recognition"]
+google = ["google-api-python-client", "google-auth-httplib2", "google-auth-oauthlib", "google-cloud-language", "google-cloud-speech", "google-cloud-storage", "google-cloud-texttospeech", "google-cloud-translate", "google-cloud-videointelligence", "google-cloud-vision", "grpcio"]
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "ff6d0a2ec6fc21607872631a5b25a9b021e5db97d19613772ce5df4ff5bb4b30"
+content-hash = "bde2d924e74fd1a0feb6ee5ce89adbd2eb82537db5e5db972de8c92f262f59ce"
 
 [metadata.files]
 appdirs = [
@@ -2390,6 +2410,7 @@ robotframework-seleniumtestability = [
     {file = "robotframework-seleniumtestability-1.1.0.tar.gz", hash = "sha256:18810869a0c0010cc623aea4bb382afdc9aa6fe8404c35fa58452766d0322735"},
 ]
 rpaframework-core = []
+rpaframework-recognition = []
 rsa = [
     {file = "rsa-4.6-py3-none-any.whl", hash = "sha256:6166864e23d6b5195a5cfed6cd9fed0fe774e226d8f854fcb23b7bbef0350233"},
     {file = "rsa-4.6.tar.gz", hash = "sha256:109ea5a66744dd859bf16fe904b8d8b627adafb9408753161e766a92e7d681fa"},

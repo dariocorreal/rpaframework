@@ -3,15 +3,15 @@ import time
 from robot.api.deco import keyword
 from robotlibcore import DynamicCore
 
+from RPA.core.geometry import Point
 from RPA.core.locators import (
     LocatorsDatabase,
     Locator,
     Coordinates,
     Offset,
     ImageTemplate,
+    templates,
 )
-from RPA.core.geometry import Point
-from RPA.Images import Images
 from RPA.Desktop.keywords import (
     ApplicationKeywords,
     ClipboardKeywords,
@@ -57,8 +57,11 @@ class Desktop(DynamicCore):
             position.offset(locator.x, locator.y)
             return position
         elif isinstance(locator, ImageTemplate):
-            match = Images().find_template_on_screen(
-                locator.path, tolerance=locator.tolerance, limit=1
+            match = templates.find(
+                self.take_screenshot(),
+                locator.path,
+                confidence=locator.confidence,
+                limit=1,
             )
             return match[0].center
         else:

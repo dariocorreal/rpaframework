@@ -1,7 +1,6 @@
 from typing import List
 from pynput.keyboard import Controller, Key, KeyCode
-from robot.api.deco import keyword
-from RPA.Desktop.keywords import LibraryContext
+from RPA.Desktop.keywords import LibraryContext, keyword
 
 
 def to_key(key: str):

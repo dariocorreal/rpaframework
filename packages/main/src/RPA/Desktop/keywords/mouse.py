@@ -1,10 +1,9 @@
 from enum import Enum
 from typing import Optional
 from pynput.mouse import Button, Controller
-from robot.api.deco import keyword
 from RPA.core.helpers import delay
 from RPA.core.geometry import Point
-from RPA.Desktop.keywords import LibraryContext
+from RPA.Desktop.keywords import LibraryContext, keyword
 
 
 class Action(Enum):
@@ -25,8 +24,8 @@ def to_action(value):
     sanitized = str(value).lower().strip().replace(" ", "_")
     try:
         return Action[sanitized]
-    except KeyError:
-        raise ValueError(f"Unknown mouse action: {value}")
+    except KeyError as err:
+        raise ValueError(f"Unknown mouse action: {value}") from err
 
 
 def to_button(value):
@@ -37,8 +36,8 @@ def to_button(value):
     sanitized = str(value).lower().strip().replace(" ", "_")
     try:
         return Button[sanitized]
-    except KeyError:
-        raise ValueError(f"Unknown mouse button: {value}")
+    except KeyError as err:
+        raise ValueError(f"Unknown mouse button: {value}") from err
 
 
 class MouseKeywords(LibraryContext):

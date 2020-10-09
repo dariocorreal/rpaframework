@@ -1,9 +1,8 @@
 import subprocess
 from pathlib import Path
 from typing import List
-from robot.api.deco import keyword
 from RPA.Desktop import utils
-from RPA.Desktop.keywords import LibraryContext
+from RPA.Desktop.keywords import LibraryContext, keyword
 
 
 class App:
