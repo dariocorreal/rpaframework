@@ -85,7 +85,7 @@ class ImageTemplate(Locator):
     """Image-based locator for template matching."""
 
     path: Path
-    tolerance: float = 100.0
+    confidence: float = 100.0
 
     @property
     def typename(self):
