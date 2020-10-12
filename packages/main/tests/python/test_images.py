@@ -1,6 +1,7 @@
 import pytest
 from pathlib import Path
-from RPA.Images import Images, Region
+
+# from RPA.Images import Images, Region
 
 IMAGES = Path(__file__).resolve().parent / ".." / "resources" / "images"
 
