@@ -1,13 +1,43 @@
 import os
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 import mss
 from PIL import Image
 from robot.libraries.BuiltIn import RobotNotRunningError, BuiltIn
+
 from RPA.core.helpers import clean_filename
-from RPA.core.geometry import Region
+from RPA.core.geometry import Point, Region
+from RPA.Desktop import utils
 from RPA.Desktop.keywords import LibraryContext, keyword
+
+if utils.is_windows():
+    import ctypes
+    import win32structures
+    import win32defines
+    import win32functions
+
+
+def _draw_outline(region: Region):
+    """Win32-based outline drawing for region."""
+    brush_struct = win32structures.LOGBRUSH()
+    brush_struct.lbStyle = win32defines.BS_NULL
+    brush_struct.lbHatch = win32defines.HS_DIAGCROSS
+
+    brush = win32functions.CreateBrushIndirect(ctypes.byref(brush_struct))
+    pen = win32functions.CreatePen(win32defines.PS_SOLID, 2, 0x0000FF)
+    dc = win32functions.CreateDC("DISPLAY", None, None, None)
+
+    try:
+        win32functions.SelectObject(dc, brush)
+        win32functions.SelectObject(dc, pen)
+        win32functions.Rectangle(
+            dc, region.left, region.top, region.right, region.bottom
+        )
+    finally:
+        win32functions.DeleteObject(brush)
+        win32functions.DeleteObject(pen)
+        win32functions.DeleteDC(dc)
 
 
 class ScreenKeywords(LibraryContext):
@@ -59,3 +89,19 @@ class ScreenKeywords(LibraryContext):
             return Region.from_size(
                 disp["left"], disp["top"], disp["width"], disp["height"]
             )
+
+    def highlight_elements(self, locator) -> List[Point]:
+        """Draw an outline around all matching elements."""
+        if not utils.is_windows():
+            raise NotImplementedError("Not supported on non-Windows platforms")
+
+        matches = self.ctx.find(locator)
+
+        for match in matches:
+            if isinstance(match, Region):
+                _draw_outline(match)
+            elif isinstance(match, Point):
+                region = Region(match.x - 5, match.y - 5, match.x + 5, match.y + 5)
+                _draw_outline(region)
+            else:
+                raise TypeError(f"Unknown location type: {match}")

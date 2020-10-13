@@ -1,12 +1,84 @@
+import logging
+import time
+from pathlib import Path
+from typing import Any, Iterator, List, Optional, Union
+
 import cv2
 import numpy
+from PIL import Image
+from RPA.core import geometry
 from RPA.core.geometry import Region
 
 
 DEFAULT_CONFIDENCE = 0.95
 
 
-def find(image, template, confidence=DEFAULT_CONFIDENCE):
+class ImageNotFoundError(Exception):
+    """Raised when template matching fails."""
+
+
+def find(
+    image: Union[Image, Path],
+    template: Union[Image, Path],
+    region: Optional[Region] = None,
+    limit: Optional[int] = None,
+    confidence: Optional[float] = None,
+) -> List[Region]:
+    """Attempt to find the template from the given image.
+
+    :param image:       Path to image or Image instance, used to search from
+    :param template:    Path to image or Image instance, used to search with
+    :param limit:       Limit returned results to maximum of `limit`.
+    :param region:      Area to search from. Can speed up search significantly.
+    :param confidence:  Confidence for matching, value between 0.1 and 1.0
+    :return:            List of matching regions
+    :raises ImageNotFoundError: No match was found
+    """
+    # Ensure images are in Pillow format
+    image = _to_image(image)
+    template = _to_image(template)
+
+    # Crop image if requested
+    if region is not None:
+        region = geometry.to_region(region)
+        image = image.crop(region.as_tuple())
+
+    # Verify template still fits in image
+    if template.size[0] > image.size[0] or template.size[1] > image.size[1]:
+        raise ValueError("Template is larger than search region")
+
+    # Do the actual search
+    start = time.time()
+
+    matches = []
+    for match in _match_template(image, template, confidence):
+        matches.append(match)
+        if limit is not None and len(matches) >= int(limit):
+            break
+
+    logging.info("Scanned image in %.2f seconds", time.time() - start)
+
+    if not matches:
+        raise ImageNotFoundError("No matches for given template")
+
+    # Convert region coördinates back to full-size coördinates
+    if region is not None:
+        for match in matches:
+            match.move(region.left, region.top)
+
+    return matches
+
+
+def _to_image(obj: Any) -> Image:
+    """Convert `obj` to instance of Pillow's Image class."""
+    if obj is None or isinstance(obj, Image.Image):
+        return obj
+    return Image.open(obj)
+
+
+def _match_template(
+    image: Image, template: Image, confidence: float = DEFAULT_CONFIDENCE
+) -> Iterator[Region]:
     """Use opencv's matchTemplate() to slide the `template` over
     `image` to calculate correlation coefficients, and then
     filter with a confidence to find all relevant global maximums.
