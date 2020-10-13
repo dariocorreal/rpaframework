@@ -11,7 +11,6 @@ from RPA.core.locators import (
     Coordinates,
     Offset,
     ImageTemplate,
-    templates,
 )
 from RPA.Desktop.keywords import (
     ApplicationKeywords,
@@ -20,6 +19,13 @@ from RPA.Desktop.keywords import (
     MouseKeywords,
     ScreenKeywords,
 )
+
+try:
+    from RPA.recognition import templates
+
+    HAS_RECOGNITION = True
+except ImportError:
+    HAS_RECOGNITION = False
 
 
 LocatorType = Union[Locator, Region, Point, str]
@@ -69,6 +75,11 @@ class Desktop(DynamicCore):
             position.offset(locator.x, locator.y)
             return [position]
         elif isinstance(locator, ImageTemplate):
+            if not HAS_RECOGNITION:
+                raise ValueError(
+                    "Image templates not supported, please install "
+                    "rpaframework-recognition module"
+                )
             # TODO: Add built-in offset support
             return templates.find(
                 self.take_screenshot(), locator.path, confidence=locator.confidence

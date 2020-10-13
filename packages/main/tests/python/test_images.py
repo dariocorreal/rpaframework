@@ -1,7 +1,7 @@
 import pytest
 from pathlib import Path
 
-# from RPA.Images import Images, Region
+from RPA.Images import Images, TemplateMatcher, Region, HAS_OPENCV
 
 IMAGES = Path(__file__).resolve().parent / ".." / "resources" / "images"
 
@@ -63,7 +63,7 @@ def region_and_template(request):
     yield request.param[0], request.param[1]
 
 
-@pytest.mark.skip(reason="TODO: Move these elsewhere")
+@pytest.mark.skipif(not HAS_OPENCV, reason="Test requires opencv support")
 def test_find_template(region_and_template):
     region, template = region_and_template
     region = Region(*region)
