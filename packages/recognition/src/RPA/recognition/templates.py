@@ -22,7 +22,7 @@ def find(
     template: Union[Image.Image, Path],
     region: Optional[Region] = None,
     limit: Optional[int] = None,
-    confidence: Optional[float] = None,
+    confidence: float = DEFAULT_CONFIDENCE,
 ) -> List[Region]:
     """Attempt to find the template from the given image.
 
