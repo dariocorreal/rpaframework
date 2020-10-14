@@ -1,9 +1,9 @@
-from typing import List
+from typing import Union
 from pynput.keyboard import Controller, Key, KeyCode
 from RPA.Desktop.keywords import LibraryContext, keyword
 
 
-def to_key(key: str):
+def to_key(key: str) -> Union[Key, KeyCode]:
     """Convert key string to correct enum value."""
     if isinstance(key, (Key, KeyCode)):
         return key
@@ -34,7 +34,7 @@ class KeyboardKeywords(LibraryContext):
         self._keyboard = Controller()
 
     @keyword
-    def type_text(self, text: str, *modifiers: List[str]) -> None:
+    def type_text(self, text: str, *modifiers: str) -> None:
         """Type text one letter at a time."""
         keys = [to_key(key) for key in modifiers]
         self.logger.info("Typing text: %s", text)
@@ -43,7 +43,7 @@ class KeyboardKeywords(LibraryContext):
             self._keyboard.type(text)
 
     @keyword
-    def press_keys(self, *keys: List[str]) -> None:
+    def press_keys(self, *keys: str) -> None:
         """Press multiple keys down simultaneously."""
         keys = [to_key(key) for key in keys]
         self.logger.info("Pressing keys: %s", ", ".join(str(key) for key in keys))

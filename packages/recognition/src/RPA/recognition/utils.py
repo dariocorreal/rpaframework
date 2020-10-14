@@ -3,12 +3,12 @@ import io
 from PIL import Image
 
 
-def image_to_base64(image: PIL.Image) -> str:
+def image_to_base64(image: Image.Image) -> str:
     """Convert Image object to base64 string."""
     stream = io.BytesIO()
     image.save(stream)
     data = stream.getvalue()
-    text = base64.b64encode(data)
+    text = base64.b64encode(data).decode()
     return text
 
 

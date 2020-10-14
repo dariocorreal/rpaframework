@@ -28,9 +28,6 @@ except ImportError:
     HAS_RECOGNITION = False
 
 
-LocatorType = Union[Locator, Region, Point, str]
-
-
 class TimeoutException(ValueError):
     """Timeout reached while waiting for condition."""
 
@@ -52,7 +49,7 @@ class Desktop(DynamicCore):
         ]
         super().__init__(libraries)
 
-    def find(self, locator: LocatorType) -> List[Union[Point, Region]]:
+    def find(self, locator: str) -> List[Union[Point, Region]]:
         """Internal method for resolving and searching locators."""
         # Check if already a location
         if isinstance(locator, (Region, Point)):
@@ -88,7 +85,7 @@ class Desktop(DynamicCore):
             raise NotImplementedError(f"Unsupported locator: {locator}")
 
     @keyword
-    def find_elements(self, locator: LocatorType) -> List[Point]:
+    def find_elements(self, locator: str) -> List[Point]:
         """Find all elements defined by locator, and return their positions."""
         matches = []
 
@@ -103,7 +100,7 @@ class Desktop(DynamicCore):
         return matches
 
     @keyword
-    def find_element(self, locator: LocatorType) -> Point:
+    def find_element(self, locator: str) -> Point:
         """Find an element defined by locator, and return its position."""
         matches = self.find_elements(locator)
 
@@ -122,7 +119,7 @@ class Desktop(DynamicCore):
 
     @keyword
     def wait_for_element(
-        self, locator: LocatorType, timeout: float = 10.0, interval: float = 0.5
+        self, locator: str, timeout: float = 10.0, interval: float = 0.5
     ) -> Point:
         """Wait for an element defined by locator to exist or
         until timeout is reached.

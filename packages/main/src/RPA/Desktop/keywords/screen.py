@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 import mss
 from PIL import Image
@@ -13,9 +13,9 @@ from RPA.Desktop.keywords import LibraryContext, keyword
 
 if utils.is_windows():
     import ctypes
-    import win32structures
-    import win32defines
-    import win32functions
+    from pywinauto import win32structures
+    from pywinauto import win32defines
+    from pywinauto import win32functions
 
 
 def _draw_outline(region: Region):
@@ -90,7 +90,7 @@ class ScreenKeywords(LibraryContext):
                 disp["left"], disp["top"], disp["width"], disp["height"]
             )
 
-    def highlight_elements(self, locator) -> List[Point]:
+    def highlight_elements(self, locator: str):
         """Draw an outline around all matching elements."""
         if not utils.is_windows():
             raise NotImplementedError("Not supported on non-Windows platforms")

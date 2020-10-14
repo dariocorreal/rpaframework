@@ -85,11 +85,11 @@ class ApplicationKeywords(LibraryContext):
     def close_application(self, app: App) -> None:
         """Close given application."""
         if app.is_running:
-            app.close()
+            app.stop()
 
     @keyword
     def close_all_applications(self) -> None:
         """Close all opened applications."""
         for app in self._apps:
             if app.is_running:
-                app.close()
+                app.stop()
