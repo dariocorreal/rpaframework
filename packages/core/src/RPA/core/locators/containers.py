@@ -84,7 +84,9 @@ class Locator(metaclass=LocatorMeta):
 class ImageTemplate(Locator):
     """Image-based locator for template matching."""
 
-    path: Path
+    strategy: str
+    value: str
+    source: str
     confidence: float = 100.0
 
     @property
