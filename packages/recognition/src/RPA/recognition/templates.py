@@ -18,8 +18,8 @@ class ImageNotFoundError(Exception):
 
 
 def find(
-    image: Union[Image, Path],
-    template: Union[Image, Path],
+    image: Union[Image.Image, Path],
+    template: Union[Image.Image, Path],
     region: Optional[Region] = None,
     limit: Optional[int] = None,
     confidence: Optional[float] = None,
@@ -69,7 +69,7 @@ def find(
     return matches
 
 
-def _to_image(obj: Any) -> Image:
+def _to_image(obj: Any) -> Image.Image:
     """Convert `obj` to instance of Pillow's Image class."""
     if obj is None or isinstance(obj, Image.Image):
         return obj
@@ -77,7 +77,7 @@ def _to_image(obj: Any) -> Image:
 
 
 def _match_template(
-    image: Image, template: Image, confidence: float = DEFAULT_CONFIDENCE
+    image: Image.Image, template: Image.Image, confidence: float = DEFAULT_CONFIDENCE
 ) -> Iterator[Region]:
     """Use opencv's matchTemplate() to slide the `template` over
     `image` to calculate correlation coefficients, and then
